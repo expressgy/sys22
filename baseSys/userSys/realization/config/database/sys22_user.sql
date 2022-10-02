@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_info_other`  (
   `address` varchar(255) NULL COMMENT '住址',
   `country` varchar(255) NULL COMMENT '国家地区',
   `sex` int(1) NULL COMMENT '性别',
-  `birthady` int(8) NULL COMMENT '生日',
+  `birthday` int(8) NULL COMMENT '生日',
   `nickname` varchar(64) NULL COMMENT '昵称',
   `personal` varchar(255) NULL COMMENT '个人简介',
   `slogn` varchar(64) NULL COMMENT '标语',

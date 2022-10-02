@@ -1,6 +1,7 @@
 module.exports = {
     //  配置文件路径
     CONFIG_PATH:__dirname,
+    SYSTEM_NAME:'ANTO-G',
     PROJECT_NAME:'sys22 userSys',
     PORT:'3000',
     KEY:'expressgy',
@@ -29,5 +30,11 @@ module.exports = {
         login:{
             timeLimit:1000 * 60 * 60 * 24 * 14 ,//  token时常
         }
+    },
+    //  邮件服务
+    EMAILCONFIG : {
+        HOST:'smtp.qq.com',
+        USER:'togy.gc@qq.com',
+        PASS:'qnpjbbeyunysdhac'
     }
 }

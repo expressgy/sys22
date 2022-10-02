@@ -22,20 +22,13 @@ const Koa = require('koa')//    主依赖 Koa2
     // , bodyparser = require('koa-bodyparser')//   获取body的参数，post,支持x-www-form-urlencoded, application/json等格式的请求体，不支持form-data的请求体
     , koaBody = require('koa-body')//   支持form-data，支持文件，不支持x-www-form-urlencoded，不可同时使用，
 
-/**
- * 数据库操作
- * */
-// const {
-//     createDatabase,
-//     createUserTable
-// } = require('./src/databases/init');
 
 global.path = __dirname
 
 /**
  * 路由
  * */
-// const router = require('./src/Routes/entry')
+const router = require('./src/Routes/index')
 /**
  * 创建应用程序
  * */
@@ -67,11 +60,11 @@ app.use(koaBody({
     }
 }));
 //  路由
-// app.use(router.routes(), router.allowedMethods({
-//     // throw: true, // 抛出错误，代替设置响应头状态
-//     // notImplemented: () => '不支持当前请求所需要的功能',
-//     // methodNotAllowed: () => '不支持的请求方式'
-// }));
+app.use(router.routes(), router.allowedMethods({
+    // throw: true, // 抛出错误，代替设置响应头状态
+    // notImplemented: () => '不支持当前请求所需要的功能',
+    // methodNotAllowed: () => '不支持的请求方式'
+}));
 
 
 //  打印时间
@@ -84,27 +77,6 @@ function printMethod() {
     }
 }
 
-//  数据库操作
-// async function databaseOperation() {
-//     try {
-//         const rec = await createDatabase()
-//         console.s(rec.message)
-//     } catch (e) {
-//         throw new Error(e.message)
-//     }
-//
-//     try {
-//         const rec = await createUserTable()
-//         const status = rec.some(itx => !itx.status)
-//         if (status) {
-//             throw rec
-//         } else {
-//             console.s('创建用户系统表成功！')
-//         }
-//     } catch (e) {
-//         throw new Error(e.message)
-//     }
-// }
 setTimeout(other)
 function other(){
     console.w('other')
