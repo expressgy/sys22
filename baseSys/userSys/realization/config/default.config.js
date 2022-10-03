@@ -36,5 +36,14 @@ module.exports = {
         HOST:'smtp.qq.com',
         USER:'togy.gc@qq.com',
         PASS:'qnpjbbeyunysdhac'
+    },
+    //  redis
+    RedisJSON:{
+        host:'uair.cc',
+        port:6379,
+        timeout:5 * 60 * 1000,
+        startClear:true,
+        pool:0,
+        clearTime:1000 * 60 * 60 * 6
     }
 }

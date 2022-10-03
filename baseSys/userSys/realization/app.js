@@ -79,7 +79,7 @@ function printMethod() {
 
 setTimeout(other)
 function other(){
-    console.w('other')
+    console.w('other test')
     console.w(global.path)
 }
 module.exports = app;

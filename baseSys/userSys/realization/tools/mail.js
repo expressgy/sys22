@@ -1,5 +1,8 @@
 const nodemailer = require('nodemailer'); //引入模块
 
+
+const reg = /^[a-zA-Z0-9]+([-_.][A-Za-zd]+)*@([a-zA-Z0-9]+[-.])+[A-Za-zd]{2,5}$/
+
 const { EMAILCONFIG,SYSTEM_NAME } = require('../config/default.config')
 
 const transporter = nodemailer.createTransport({
@@ -20,15 +23,16 @@ const transporter = nodemailer.createTransport({
 
 
 function sendMail(mail, code) {
+    console.log(mail, code)
     return new Promise((rec,rej) => {
         // 发送的配置项
         const mailOptions = {
             from: '"TOGY.GC" <togy.gc@qq.com>', // 发送方
             to: mail, //接收者邮箱，多个邮箱用逗号间隔
-            subject: `Register An Account TO ${SYSTEM_NAME}!`, // 标题
+            subject: `${SYSTEM_NAME}!`, // 标题
             text: 'Hello world?', // 文本内容
             html: `<div style="position: relative;height: 300px;width: 100%">
-                <div><h1 style="text-align: center;line-height: 70px">Welcome to ${SYSTEM_NAME} </h1><p style="text-align: center">Through this verification code, you can join us. Thank you for your support!</p></div>
+                <div><h1 style="text-align: center;line-height: 70px">欢迎使用 ${SYSTEM_NAME} </h1><p style="text-align: center">您在某些地方请求了邮箱的验证码，如果不是自己操作请修改账户的密码。</p></div>
                 <div style="width: 100%;position:relative;height: 200px;display: flex;align-items: center;justify-content: center">
                     <div style="background: #333333;height: 80px;line-height: 80px;padding: 1em;font-size: 24px;color:#FEFEFE;font-weight: bold;text-align: center">${code}</div>
                 </div>
@@ -53,9 +57,11 @@ function sendMail(mail, code) {
         });
     })
 }
-sendMail('x71291@outlook.com', '123456').then(rec => {
-    console.log(rec);
-}).catch(e => {
-    console.log(e);
-})
-module.exports = sendMail
+
+function checkEmail(email){
+    return reg.test(email)
+}
+module.exports = {
+    sendMail,
+    checkEmail
+}
