@@ -12,6 +12,8 @@ const initConsole = require('../tools/console/index')
     , getStr = require('../tools/RandomString')
     , makeUUID = require('../tools/uuid')
     , mail = require('../tools/mail')
+    , {HASH} = require('../tools/user/encryptionString')
+    , token = require('../tools/user/token')
 
 async function run() {
     //  初始化console
@@ -51,6 +53,8 @@ async function run() {
     global.getStr = getStr
     global.makeUUID = makeUUID
     global.mail = mail
+    global.HASH = HASH
+    global.token = token
 
     /**
      * 启动服务

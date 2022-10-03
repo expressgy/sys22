@@ -24,7 +24,7 @@ module.exports = {
         sign:{
             mailVerf: false,//  邮箱验证注册
             phoneVerf:false,//  手机验证注册
-            length:4,
+            length:4,// 验证码长度
         },
         //  登录
         login:{
@@ -42,8 +42,11 @@ module.exports = {
         host:'uair.cc',
         port:6379,
         timeout:5 * 60 * 1000,
-        startClear:true,
+        // timeout:5 * 1000,
+        startClear: false,
         pool:0,
         clearTime:1000 * 60 * 60 * 6
-    }
+    },
+    //  一个用户的同时在线终端数量
+    maxClientOnline:6
 }

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_info`  (
   `uuid` char(32) NOT NULL COMMENT '唯一id',
   `username` varchar(255) NULL COMMENT '用户名',
   `email` varchar(255) NULL COMMENT '电子邮箱',
-  `phone` int(11) NULL COMMENT '手机号码',
+  `phone` bigint(11) NULL COMMENT '手机号码',
   `person` varchar(18) NULL COMMENT '身份证',
   `status` int(1) NOT NULL DEFAULT 0 COMMENT '使用状态',
   `createtime` bigint(13) NOT NULL COMMENT '创建时间',
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_info_other`  (
   `birthday` int(8) NULL COMMENT '生日',
   `nickname` varchar(64) NULL COMMENT '昵称',
   `personal` varchar(255) NULL COMMENT '个人简介',
-  `slogn` varchar(64) NULL COMMENT '标语',
+  `slogan` varchar(64) NULL COMMENT '标语',
   `avatar` varchar(64) NULL COMMENT '头像',
   `background` varchar(64) NULL COMMENT '背景',
   `updateTime` bigint(13) NOT NULL COMMENT '修改时间',
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_info_other`  (
 CREATE TABLE IF NOT EXISTS `sys22_user`.`user_login`  (
   `id` int NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `uuid` char(32) NOT NULL COMMENT '用户唯一ID',
-  `password` varchar(255) NOT NULL COMMENT '加密密码',
+  `password` char(128) NOT NULL COMMENT '加密密码',
   `createtime` bigint(13) NOT NULL COMMENT '密码创建时间',
   `status` int(1) NOT NULL DEFAULT 0 COMMENT '密码使用状态',
   PRIMARY KEY (`id`)

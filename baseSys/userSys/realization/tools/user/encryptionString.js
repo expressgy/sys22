@@ -6,7 +6,7 @@ const crypto = require('crypto');
 /**
  * 配置文件
  * */
-const CFG = global.cfg ? global.cfg.encryption : require('../../../config/default.config')
+const CFG = global.cfg ? global.cfg.encryption : require('../../config/default.config')
 /**
  * 加密算法
  * */

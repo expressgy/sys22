@@ -43,6 +43,15 @@ function SELECT(table, field, where) {
         .select()
 }
 
+function ORDER(table, field, where, order){
+    return sql
+        .table(table)
+        .field(field)
+        .where(where)
+        .order(order)
+        .select()
+}
+
 const table = {
     userInfo:'user_info',
     userInfoOther:'user_info_other',
@@ -75,6 +84,11 @@ for(let i in table){
             SELECT(field, where){
                 const SQL = SELECT(table[i], field, where)
                 console.e(SQL);
+                return exec(SQL)
+            },
+            ORDER(field, where, order){
+                const SQL = ORDER(table[i], field, where, order)
+                console.e(SQL)
                 return exec(SQL)
             }
         }
