@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_info`  (
   `email` varchar(255) NULL COMMENT '电子邮箱',
   `phone` bigint(11) NULL COMMENT '手机号码',
   `person` varchar(18) NULL COMMENT '身份证',
-  `status` int(1) NOT NULL DEFAULT 0 COMMENT '使用状态',
+  `status` int(1) NOT NULL DEFAULT 1 COMMENT '使用状态',
   `createtime` bigint(13) NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`uuid`)
 );

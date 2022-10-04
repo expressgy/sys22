@@ -19,12 +19,19 @@ const transporter = nodemailer.createTransport({
     //pass 不是邮箱账户的密码而是stmp的授权码（必须是相应邮箱的stmp授权码）
     //邮箱---设置--账户--POP3/SMTP服务---开启---获取stmp授权码
 });
+const typeList = {
+    signUp:'账户注册',
+    signIn:'登录',
+    reset:'重置密码',
+    writeoff:'注销账户'
+}
 
-
-
-function sendMail(mail, code) {
+function sendMail(mail, code, type) {
     console.log(mail, code)
     return new Promise((rec,rej) => {
+        if(!checkEmail(mail)){
+            rej('邮箱格式错误!')
+        }
         // 发送的配置项
         const mailOptions = {
             from: '"TOGY.GC" <togy.gc@qq.com>', // 发送方
@@ -33,8 +40,9 @@ function sendMail(mail, code) {
             text: 'Hello world?', // 文本内容
             html: `<div style="position: relative;height: 300px;width: 100%">
                 <div><h1 style="text-align: center;line-height: 70px">欢迎使用 ${SYSTEM_NAME} </h1><p style="text-align: center">您在某些地方请求了邮箱的验证码，如果不是自己操作请修改账户的密码。</p></div>
+                <div style="width: 100%;position:relative;height: 200px;display: flex;align-items: center;justify-content: center"><div style="line-height: 80px;padding: 1em;font-size: 24px;color:red;font-weight: bold;text-align: centerline-height: 1em">此验证码用于 ${typeList[type]}。 </div><p style="text-align: center"></p></div>
                 <div style="width: 100%;position:relative;height: 200px;display: flex;align-items: center;justify-content: center">
-                    <div style="background: #333333;height: 80px;line-height: 80px;padding: 1em;font-size: 24px;color:#FEFEFE;font-weight: bold;text-align: center">${code}</div>
+                    <div style="background: #333333;height: 80px;line-height: 80px;padding: 1em;font-size: 32px;color:#FEFEFE;font-weight: bold;text-align: center">${code}</div>
                 </div>
             </div>`, //页面内容
             // attachments: [{//发送文件

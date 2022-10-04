@@ -4,25 +4,6 @@ const router = require('koa-router')();
 //  全局路由
 router.prefix('/api')
 
-//  统一消息恢复
-
-global.msg = {
-    success: (data, message = "success", status = true) => {
-        return {
-            data,
-            message,
-            status
-        }
-    },
-    failed: (data, message = "failed", status = false) => {
-        return {
-            data,
-            message,
-            status
-        }
-    }
-}
-
 router.use(
     //  用户系统
     require('./user/index'),

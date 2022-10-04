@@ -55,6 +55,11 @@ async function run() {
     global.mail = mail
     global.HASH = HASH
     global.token = token
+    //  统一消息回复
+    global.msg = {
+        success: (data, message = "success") => ({data, message, status:true}),
+        failed: (data, message = "failed", reStart = false) => ({data, message, reStart, status:false})
+    }
 
     /**
      * 启动服务

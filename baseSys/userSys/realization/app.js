@@ -59,6 +59,11 @@ app.use(koaBody({
         // },
     }
 }));
+
+//  token
+app.use(verToken())
+
+
 //  路由
 app.use(router.routes(), router.allowedMethods({
     // throw: true, // 抛出错误，代替设置响应头状态
@@ -66,6 +71,34 @@ app.use(router.routes(), router.allowedMethods({
     // methodNotAllowed: () => '不支持的请求方式'
 }));
 
+//  veriToken
+function verToken(){
+    return async function(ctx, next){
+        //  请求地址判断
+        if(ctx.req.url.indexOf('/api/user/will') == 0){
+            await next()
+        }else{
+            const token = ctx.request.header.authorization
+            const result2 = global.token.decrypt(token)
+            //  判断此Token有没有过期
+            if(result2.token){
+                const result = await global.Redis.getToken(token)
+                //  判断Redis是否有此token
+                if(result){
+                    ctx.uuid = result2.id.uuid
+                    ctx.token = token
+                    await next()
+                }else{
+                    ctx.body = global.msg.failed({}, '账户令牌失效!', true)
+                }
+
+            }else{
+                ctx.body = global.msg.failed({}, '账户令牌失效。', true)
+            }
+
+        }
+    }
+}
 
 //  打印时间
 function printMethod() {

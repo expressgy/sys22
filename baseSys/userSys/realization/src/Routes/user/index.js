@@ -9,7 +9,7 @@ router.use(
     //  登陆前操作
     require('./will'),
     // //  账户操作
-    // require('./signed'),
+    require('./signed'),
     // //  角色
     // require('./role'),
     // //  权限

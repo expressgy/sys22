@@ -1,5 +1,6 @@
 const {createClient} = require('redis')
     , {RedisJSON, maxClientOnline, user} = require('../config/default.config')
+    ,{HASH} = require('../tools/user/encryptionString')
 
 function initRedisJSON() {
     return new Promise(async (res, rej) => {
@@ -17,117 +18,43 @@ function initRedisJSON() {
     })
 }
 
+const codeList = ['signUp', 'signIn', 'reset', 'writeoff']
+
 function Redis() {
     return new Promise(async (res, rej) => {
         try {
             const client = await initRedisJSON()
-            await client.json.set('signUpCode', '$', {}, {NX: true});
+
+            //  初始化RedisJSON池
+            //  同类的
+            for(let codeType of codeList){
+                await client.json.set(codeType, '$', {}, {NX: true});
+            }
+            //  特殊的
             await client.json.set('login', '$', {}, {NX: true});
-            await client.json.set('signInCode', '$', {}, {NX: true});
-            // await client.json.set('signUpCode', 'x71291@outlook.com', {
-            //     code: 121212,
-            //     time: new Date().getTime()
-            // }, {NX: true});
-            let signUpCode = 0;
-            //  定时清理
+            //  执行清理程序
             setInterval(async () => {
-                //  清理signUpCOde
-                if (signUpCode != 0) {
-                    //  获取Keys
-                    try {
-                        const result = await client.json.get('signUpCode', '$')
-                        console.dev('准备清理 - 查找RedisJSON signUpCode')
-                    } catch (e) {
-                        console.dev('准备清理 - 查找RedisJSON signUpCode 失败')
-                        return
-                    }
-                    const nowTime = new Date().getTime()
-                    //  执行清理任务
-                    for (let i in result) {
-                        if (nowTime - result[i].time > RedisJSON.timeout) {
-                            try {
-                                await client.json.del(i)
-                                console.dev('清理RedisJSON signUpCode', i, '成功')
-                            } catch (e) {
-                                console.dev('清理RedisJSON signUpCode', i, '失败')
-                            }
-                        }
-                    }
-                }
-
-                //  清理UUID
-                try {
-                    await clearLoginArr(client)
-                    console.dev('清理UUID成功')
-                } catch (e) {
-                    console.dev('清理UUID发生异常', e)
-                }
-
-                //  清理登录Code
-                try{
-                    await clearSignInCode(client)
-                }catch (e) {
-                    console.dev('清理登录Code发生异常', e)
-                }
-
+                clearAllCode(client)
             }, RedisJSON.clearTime)
+
+            //  生成对外程序
+            const codeMethods = {}
+            for(let codeType of codeList){
+                const nowCodeType = codeType.replace(codeType[0],codeType.split("")[0].toUpperCase())
+                codeMethods['set' + nowCodeType + 'Code'] = (emailOrUsername, code) => setCode(client, codeType, emailOrUsername, code)
+                codeMethods['get' + nowCodeType + 'Code'] = (emailOrUsername) => getCode(client, codeType, emailOrUsername)
+                codeMethods['del' + nowCodeType + 'Code'] = (emailOrUsername) => delCode(client, codeType, emailOrUsername)
+                // codeMethods['clear' + nowCodeType + 'Code'] = () => clearCode(client, codeType)
+            }
             const RJ = {
                 client,
-                setSignUpCode: (user, code) => {
-                    return new Promise(async (res, rej) => {
-                        try {
-                            res(await client.json.set('signUpCode', user, {
-                                code,
-                                time: new Date().getTime()
-                            }, {NX: true}))
-                            signUpCode++
-                        } catch (e) {
-                            rej(e)
-                        }
-                    })
-                },
-                getSignUpCode: (user) => {
-                    return new Promise(async (res, rej) => {
-                        try {
-                            res(await client.json.get('signUpCode', {path: user}))
-                        } catch (e) {
-                            rej(e)
-                        }
-                    })
-                },
-                delSignUpCode: (user) => {
-                    return new Promise(async (res, rej) => {
-                        try {
-                            res(await client.json.del('signUpCode', user))
-                        } catch (e) {
-                            rej(e)
-                        }
-                    })
-                },
-                setLogin: (uuid, token) => {
-                    return setLogin(client, uuid, token)
-                },
-                getLogin: (uuid) => {
-                    return getLogin(client, uuid)
-                },
-                delLogin: (uuid, token) => {
-                    return delLogin(client, uuid, token)
-                },
-                getToken: (token) => {
-                    return getToken(client, token)
-                },
-                // clearLoginArr: () => {
-                //     return clearLoginArr(client)
-                // },
-                setSignInCode:(email, code) => {
-                    return setSignInCode(client, email, code)
-                },
-                getSignInCode:(email, code) => {
-                    return getSignInCode(client, email)
-                },
-                delSignInCode:(email, code) => {
-                    return delSignInCode(client, email)
-                },
+                //  uuid和Token
+                setLogin: (uuid, token) => setLogin(client, uuid, token),
+                getLogin: (uuid) => getLogin(client, uuid),
+                delLogin: (uuid, token) => delLogin(client, uuid, token),
+                getToken: (token) => getToken(client, token),
+                //  'signUp', 'signIn', 'reset' Code
+                ...codeMethods
             }
             res(RJ)
         } catch (e) {
@@ -135,6 +62,41 @@ function Redis() {
         }
     })
 }
+//  $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$统一清理程序$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+function clearAllCode(client){
+    return new Promise(async (res, rej) => {
+        //  清理signUpCOde
+        try{
+            await clearCode(client, 'signUp')
+        }catch (e) {
+            console.e('清理注册Code发生异常', e)
+        }
+        //  清理登录Code
+        try{
+            await clearCode(client, 'signIn')
+        }catch (e) {
+            console.e('清理登录Code发生异常', e)
+        }
+
+        //  清理找回密码Code
+        try{
+            await clearCode(client, 'reset')
+        }catch (e) {
+            console.e('清理找回密码Code发生异常', e)
+        }
+        res()
+
+        //  清理UUID
+        try {
+            await clearLoginArr(client)
+            console.dev('清理UUID成功')
+        } catch (e) {
+            console.dev('清理UUID发生异常', e)
+        }
+
+    })
+}
+
 //  ===============================================UUID && Token========================================================
 //  login,用于同账号的登陆数量，获取UUID下的TokenList
 function getLogin(client, uuid) {
@@ -157,6 +119,10 @@ function setLogin(client, uuid, token) {
         try {
             const nowTime = new Date().getTime()
             const result = await getLogin(client, uuid)
+            if(result == null){
+                console.e('需要重启服务,Redis被清空，没有根节点。')
+                throw new Error('需要重启服务,Redis被清空，没有根节点。')
+            }
             if (result.length == 0) {
                 await client.json.set('login', uuid, [{token, time: nowTime}])
                 await setToken(client, token, uuid)
@@ -171,6 +137,10 @@ function setLogin(client, uuid, token) {
                     if (nowTime - result[i].time > user.login.timeLimit) {
                         await delLoginArr(client, uuid, i, result[i].token)
                     }
+                }
+                const result2 = await getLogin(client, uuid)
+                if(result2.length == maxClientOnline){
+                    await delLoginArr(client, uuid, 0, result[0].token)
                 }
                 await client.json.ARRAPPEND('login', uuid, {token, time: nowTime})
                 await setToken(client, token, uuid)
@@ -203,7 +173,6 @@ function delLogin(client, uuid, token){
             for(let i = result.length - 1; i >= 0 ; i--){
                 if(result[i].token == token){
                     await delLoginArr(client, uuid, i, token)
-                    await delToken(client, token)
                 }
             }
             res()
@@ -263,93 +232,61 @@ function setToken(client, token, uuid) {
 function delToken(client, token) {
     return new Promise(async (res, rej) => {
         try{
-            await client.del(token)
+            const a = await client.del(token)
+            if(a != 1){
+                rej('删除token指定的UUID失败')
+                console.e('删除token指定的UUID失败')
+            }else{
+                console.dev('删除成功', a)
+            }
             res()
         }catch (e) {
-            rej()
+            rej(e)
         }
     })
 }
-//  ===============================================UUID && Token========================================================
-//
-// async function test() {
-//     const R = await Redis()
-//     await R.setLogin('uuid1', 'token11')
-//     await R.setLogin('uuid1', 'token12')
-//     await R.setLogin('uuid1', 'token13')
-//     await R.setLogin('uuid1', 'token14')
-//     await R.setLogin('uuid1', 'token15')
-//     console.log(await R.getLogin('uuid1'))
-//     await R.delLogin('uuid1', 'token15')
-//     console.log(await R.getLogin('uuid1'))
-//     // await R.setLogin('uuid1', 'token16')
-//     // await R.setLogin('uuid1', 'token17')
-//     // await R.setLogin('uuid1', 'token18')
-//     // await R.setLogin('uuid1', 'token19')
-//     // await R.setLogin('uuid1', 'token10')
-//     // await R.setLogin('uuid2', 'token21')
-//     // await R.setLogin('uuid2', 'token22')
-//     // await R.setLogin('uuid2', 'token273')
-//     // await R.setLogin('uuid2', 'token23')
-//     // await R.setLogin('uuid2', 'token24')
-//     // await R.setLogin('uuid2', 'token25')
-//     // await R.setLogin('uuid2', 'token26')
-//     // await R.setLogin('uuid2', 'token27')
-//     // await R.setLogin('uuid2', 'token28')
-//     // await R.clearLoginArr()
-//     // console.log(await R.getToken('token21'));
-//     // console.log(await R.getLogin('uuid1'));
-//     // console.log(await R.getLogin('uuid2'));
-//     // console.log('end')
-// }
-
-
-// test()
 //  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>UUID && Token>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-//  写入登录Code
-function setSignInCode(client, email, code){
+//  通用设置Code
+function setCode(client, type, emailOrUsername, code){
     return new Promise(async (res, rej) => {
         try{
             const time = new Date().getTime()
-            await client.json.set('signInCode', email, {code, time}, {NX:true})
+            await client.json.set(type, emailOrUsername, {code, time}, {NX:true})
             res()
         }catch (e) {
             rej(e)
         }
     })
 }
-//  读取登录Code
-function getSignInCode(client, email){
+function getCode(client, type, emailOrUsername){
     return new Promise(async (res, rej) => {
         try{
-            const result = await client.json.get('signInCode', {path: email})
+            const result = await client.json.get(type, {path: emailOrUsername})
             res(result)
         }catch (e) {
             rej(e)
         }
     })
 }
-//  删除登录Code
-function delSignInCode(client, email){
+function delCode(client, type, emailOrUsername){
     return new Promise(async (res, rej) => {
         try{
-            const result = await client.json.del('signInCode', email)
+            const result = await client.json.del(type, emailOrUsername)
             res(result)
         }catch (e) {
             rej(e)
         }
     })
 }
-//  清理登录COde
-function clearSignInCode(client){
+function clearCode(client, type){
     return new Promise(async (res, rej) => {
         try{
             const nowTime = new Date().getTime()
-            const result = await client.json.get('signInCode')
+            const result = await client.json.get(type)
             for(let i in result){
                 if(nowTime - result[i].time > RedisJSON.timeout){
-                    await delSignInCode(client, i)
+                    await delResetCode(client, type, i)
                 }
             }
             res()
@@ -357,7 +294,7 @@ function clearSignInCode(client){
             rej(e)
         }
     })
-
 }
+
 
 module.exports = Redis
