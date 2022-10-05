@@ -114,6 +114,26 @@ function getPassword(uuid){
         }
     })
 }
+//  获取个人角色列表
+function TgetPersonalRoleIdList(crb){
+    const page = Math.abs(Number(crb.page) || 0)
+        , pageSize = Math.abs(Number(crb.pageSize) || 10)
+        , uuid = crb.uuid
+    return new Promise(async (res, rej) => {
+        const field = '*'
+        const limit = [page * pageSize, (page + 1) * pageSize]
+        const where = {uuid}
+        try{
+            const result = await DB.userRelationRole.LIMIT(field, limit, where)
+            const count = await DB.userRelationRole.COUNT('id', where)
+            res({data: result,count: count, page, pageSize})
+        }catch (e) {
+            console.e(`获取个人角色列表失败,数据库错误`, e)
+            rej(e)
+        }
+    })
+}
+
 //#endregion
 //  ========================================================================================
 
@@ -659,6 +679,162 @@ async function getuserInfo(ctx){
 //#endregion
 //  -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#登陆后用户信息接口-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
+//  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^角色^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//#region
+//  创建角色
+async function createRole(ctx){
+    const crb = ctx.request.body;
+    if(!crb.roleName || !crb.roleRemarks){
+        ctx.body = global.msg.failed(crb, '缺少关键信息！')
+        return
+    }
+    const userRole = {
+        role_name: crb.roleName,
+        role_remarks:crb.roleRemarks
+    }
+    const field = '*'
+    const where = {...userRole, _type:'or'}
+    try{
+        const result = await DB.userRole.SELECT(field, where)
+        if(result.length > 0){
+            ctx.body = global.msg.failed(result, '创建角色失败，已存在相关角色信息！')
+            return
+        }
+    }catch (e) {
+        console.e('查重角色信息失败，数据库错误。',e)
+        ctx.body = global.msg.failed(crb, '创建角色失败，系统错误！')
+        return
+    }
+    try{
+        await DB.userRole.INSERT(userRole)
+    }catch (e) {
+        console.e('写入角色失败，数据库错误。',e)
+        ctx.body = global.msg.failed(crb, '创建角色失败，系统错误！')
+        return
+    }
+    ctx.body = global.msg.success(crb, '创建角色成功！')
+}
+//  删除角色
+async function deleteRoleList(ctx){
+    const crb = ctx.request.body;
+    if(!crb.roleIdList){
+        ctx.body = global.msg.failed(crb, '缺少关键信息！')
+        return
+    }
+    try{
+        if(!Array.isArray(crb.roleIdList)){
+            const result = await DB.userRole.DELETE({id: Number(crb.roleIdList) || 0})
+            console.log(result)
+        }else{
+            const result = await DB.userRole.DELETEINID(crb.roleIdList.join(','))
+            console.log(result)
+        }
+        ctx.body = global.msg.success({}, '删除角色成功！')
+    }catch (e) {
+        console.e('删除角色失败，数据库错误。',e)
+        ctx.body = global.msg.failed(crb, '删除角色失败，系统错误！')
+    }
+
+}
+//  修改角色信息
+async function editRole(ctx){
+    const crb = ctx.request.body;
+    if(!crb.roleId || !crb.roleName || !crb.roleRemarks){
+        ctx.body = global.msg.failed(crb, '缺少关键信息！')
+        return
+    }
+    const userRole = {
+        role_name: crb.roleName,
+        role_remarks:crb.roleRemarks
+    }
+    const where = {id:crb.roleId}
+    try{
+        await DB.userRole.UPDATE(userRole, where)
+        ctx.body = global.msg.success({}, '修改角色信息成功！')
+    }catch (e){
+        console.e('修改角色信息失败,数据库错误',e)
+        ctx.body = global.msg.failed({}, '修改角色信息失败，系统错误！')
+    }
+}
+//  获取全部角色列表
+async function getAllRoleList(ctx){
+    const crb = ctx.request.body;
+    const page = Math.abs(Number(crb.page) || 0)
+        , pageSize = Math.abs(Number(crb.pageSize) || 10)
+
+    const field = '*'
+    const limit = [page * pageSize, (page + 1) * pageSize]
+    const where = ''
+    try{
+        const result = await DB.userRole.LIMIT(field, limit, where)
+        const count = await DB.userRole.COUNT('id', where)
+        ctx.body = global.msg.success({data: result,count: count, page, pageSize}, '获取全部角色列表成功！')
+    }catch (e) {
+        console.e(`获取个人角色列表失败,数据库错误`, e)
+        ctx.body = global.msg.success({}, '获取全部角色列表失败,系统错误！')
+    }
+}
+//  获取个人角色列表
+async function getPersonalRoleIdList(ctx){
+    const crb = ctx.request.body;
+    if(!crb.uuid){
+        ctx.body = global.msg.success(crb, '缺少必要参数！')
+        return
+    }
+    try {
+        const result = await TgetPersonalRoleIdList(crb)
+        ctx.body = global.msg.success(result, '获取个人角色列表成功！')
+    }catch (e) {
+        ctx.body = global.msg.success({}, '获取个人角色列表失败,系统错误！')
+    }
+}
+//  添加用户角色关联
+async function addRoleAndUserRelation(ctx){
+    const crb = ctx.request.body;
+    if(!crb.uuidList || !crb.roleIdList){
+        ctx.body = global.msg.success(crb, '缺少必要参数！')
+        return
+    }
+    if(!Array.isArray(crb.uuidList) || !Array.isArray(crb.roleIdList)){
+        ctx.body = global.msg.success(crb, '参数类型必须为数组！')
+        return
+    }
+    const roleRelationList = []
+    for(let i of(crb.uuidList)){
+        for(let j of crb.roleIdList){
+            roleRelationList.push({uuid:i, role_id: j})
+        }
+    }
+    try{
+        await DB.userRelationRole.INSERT(roleRelationList)
+        ctx.body = global.msg.success({}, '添加用户角色关联成功！')
+    }catch (e) {
+        console.log('添加用户角色关联失败，数据库错误', e)
+        ctx.body = global.msg.success({}, '添加用户角色关联失败，系统错误！')
+    }
+}
+//  删除用户角色关联
+async function romoveRoleAndUserRelation(ctx){
+    const crb = ctx.request.body;
+    if(!crb.roleRelationIdList){
+        ctx.body = global.msg.success(crb, '缺少必要参数！')
+        return
+    }
+    if(!Array.isArray(crb.roleRelationIdList)){
+        ctx.body = global.msg.success(crb, '参数类型必须为数组！')
+        return
+    }
+    try{
+        await DB.userRelationRole.DELETEINID(crb.roleRelationIdList.join(','))
+        ctx.body = global.msg.success({}, '删除用户角色关联成功！')
+    }catch (e){
+        console.log('添加用户角色关联失败，数据库错误', e)
+        ctx.body = global.msg.success({}, '删除用户角色关联失败，系统错误！')
+    }
+}
+//#endregion
+//  -^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^角色-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-
+
 module.exports = {
     //  登陆前----------------------
     signUp,
@@ -673,4 +849,12 @@ module.exports = {
     editPassword,
     writeoff,
     getuserInfo,
+    //  角色 ^^^^^^^^^^^^^^^^^^^^^^^
+    createRole,
+    deleteRoleList,
+    editRole,
+    getAllRoleList,
+    getPersonalRoleIdList,
+    addRoleAndUserRelation,
+    romoveRoleAndUserRelation,
 }

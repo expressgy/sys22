@@ -52,6 +52,23 @@ function ORDER(table, field, where, order){
         .select()
 }
 
+function LIMIT(table, field, limit, where){
+    return sql
+        .table(table)
+        .field(field)
+        .limit(limit)
+        .where(where)
+        .select()
+}
+
+function COUNT(table,count, where){
+    return sql
+        .count(count)
+        .table(table)
+        .where(where)
+        .select()
+}
+
 const table = {
     userInfo:'user_info',
     userInfoOther:'user_info_other',
@@ -76,6 +93,12 @@ for(let i in table){
                 console.e(SQL);
                 return exec(SQL)
             },
+            //  批量删除ID关键段
+            DELETEINID(data){
+                const SQL = `DELETE FROM ${table[i]} WHERE id in (${data})`
+                console.e(SQL);
+                return exec(SQL)
+            },
             UPDATE(data, where){
                 const SQL = UPDATE(table[i], data, where)
                 console.e(SQL);
@@ -88,6 +111,16 @@ for(let i in table){
             },
             ORDER(field, where, order){
                 const SQL = ORDER(table[i], field, where, order)
+                console.e(SQL)
+                return exec(SQL)
+            },
+            LIMIT(field, limit, where){
+                const SQL = LIMIT(table[i], field, limit, where)
+                console.e(SQL)
+                return exec(SQL)
+            },
+            COUNT(count, where){
+                const SQL = COUNT(table[i], count, where)
                 console.e(SQL)
                 return exec(SQL)
             }

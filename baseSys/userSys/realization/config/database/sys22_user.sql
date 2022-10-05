@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `sys22_user`.`user_relation_authority`  (
 );
 
 CREATE TABLE IF NOT EXISTS `sys22_user`.`user_relation_role`  (
-  `id` int NOT NULL COMMENT '自增ID',
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
   `uuid` char(32) NOT NULL COMMENT '用户标识',
   `role_id` int NOT NULL DEFAULT 0 COMMENT '角色ID',
   PRIMARY KEY (`id`)

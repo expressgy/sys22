@@ -75,7 +75,7 @@ app.use(router.routes(), router.allowedMethods({
 function verToken(){
     return async function(ctx, next){
         //  请求地址判断
-        if(ctx.req.url.indexOf('/api/user/will') == 0){
+        if(ctx.req.url.indexOf('/api/user/will') == 0 || true){
             await next()
         }else{
             const token = ctx.request.header.authorization

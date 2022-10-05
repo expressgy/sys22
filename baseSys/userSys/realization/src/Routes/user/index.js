@@ -11,7 +11,7 @@ router.use(
     // //  账户操作
     require('./signed'),
     // //  角色
-    // require('./role'),
+    require('./role'),
     // //  权限
     // require('./authority')
 )
