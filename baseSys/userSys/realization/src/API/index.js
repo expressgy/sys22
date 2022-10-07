@@ -25,6 +25,7 @@ function TcheckOnly(crb) {
         }
     })
 }
+
 //  生成Token
 function TmakeToken(uuid) {
     return new Promise(async (res, rej) => {
@@ -40,6 +41,7 @@ function TmakeToken(uuid) {
         }
     })
 }
+
 //  发送验证码
 function TsendCode(crb) {
     return new Promise(async (res, rej) => {
@@ -92,44 +94,76 @@ function TsendCode(crb) {
         }
     })
 }
+
 //  精简对象
-function CompactObjects(obj){
-    for(let i in obj){
-        if(!obj[i]){
+function CompactObjects(obj) {
+    for (let i in obj) {
+        if (!obj[i]) {
             delete obj[i]
         }
     }
 }
+
 //  获取密码
-function getPassword(uuid){
+function getPassword(uuid) {
     return new Promise(async (res, rej) => {
-        try{
+        try {
             const field = 'password';
             const where = {uuid}
             const order = 'id desc limit 1'
             const result = await DB.userLogin.ORDER(field, where, order)
             res(result[0].password)
-        }catch (e) {
+        } catch (e) {
             rej(e)
         }
     })
 }
+
 //  获取个人角色列表
-function TgetPersonalRoleIdList(crb){
-    const page = Math.abs(Number(crb.page) || 0)
+function TgetPersonalRoleIdList(crb) {
+    const page = Math.abs(Number(crb.page) || 1)
         , pageSize = Math.abs(Number(crb.pageSize) || 10)
         , uuid = crb.uuid
     return new Promise(async (res, rej) => {
         const field = '*'
-        const limit = [page * pageSize, (page + 1) * pageSize]
+        const limit = [(page - 1) * pageSize, page * pageSize]
         const where = {uuid}
-        try{
+        try {
             const result = await DB.userRelationRole.LIMIT(field, limit, where)
             const count = await DB.userRelationRole.COUNT('id', where)
-            res({data: result,count: count, page, pageSize})
-        }catch (e) {
+            res({data: result, count: count[0]['COUNT(id)'], page, pageSize})
+        } catch (e) {
             console.e(`获取个人角色列表失败,数据库错误`, e)
             rej(e)
+        }
+    })
+}
+
+//  获取角色权限
+function TgetRoleAuthority(crb) {
+    return new Promise(async (res, rej) => {
+        if (!crb.roleId) {
+            res('缺少必要参数!');
+            return
+        }
+
+        try {
+            if(!crb.page && !crb.pageSize){
+                const SQL = await DB.SQL.sql.query(`SELECT * from user_authority where id in (select authority_id from user_relation_authority where role_id = ${crb.roleId})`)
+                const result2 = await DB.SQL.exec(SQL)
+                res(result2)
+            }else{
+                const page = Math.abs(Number(crb.page) || 1)
+                    , pageSize = Math.abs(Number(crb.pageSize) || 10)
+                    , limit = [(page - 1) * pageSize, page * pageSize]
+                const SQL = await DB.SQL.sql.query(`SELECT * from user_authority where id in (select authority_id from user_relation_authority where role_id = ${crb.roleId}) LIMIT ${limit}`)
+                const COUNTSQL = await DB.SQL.sql.query(`SELECT  COUNT(id) from user_authority where id in (select authority_id from user_relation_authority where role_id = ${crb.roleId}) LIMIT ${limit}`)
+                const result2 = await DB.SQL.exec(SQL)
+                const COUNTSQL_result = await DB.SQL.exec(COUNTSQL)
+                res({data:result2,count: COUNTSQL_result[0]['COUNT(id)'], page, pageSize})
+            }
+        } catch (e) {
+            rej({message: '获取角色权限错误', e})
         }
     })
 }
@@ -258,7 +292,7 @@ async function signIn(ctx) {
                 ctx.body = global.msg.failed(crb, '此用户信息不存在！')
                 return
             } else {
-                if(result[0].status == 0){
+                if (result[0].status == 0) {
                     ctx.body = global.msg.failed(crb, '此用户信息不存在！')
                     return
                 }
@@ -355,7 +389,7 @@ async function reset(ctx) {
         return
     }
     //  验证验证码信息
-    try{
+    try {
         const nowTime = new Date().getTime()
         const result = await global.Redis.getResetCode(crb.email)
         if (nowTime - result.time > global.cfg.RedisJSON.timeout) {
@@ -366,15 +400,15 @@ async function reset(ctx) {
             ctx.body = global.msg.failed(crb, '账户验证失败，验证码不匹配！')
             return
         }
-        try{
+        try {
             await global.Redis.delResetCode(crb.email)
-        }catch (e) {
+        } catch (e) {
             console.e('无法删除重置密码Code Redis', e)
             ctx.body = global.msg.failed(crb, '账户验证失败，系统错误！')
         }
 
         //  这里已经验证成功
-    }catch (e){
+    } catch (e) {
         //  未查到
         console.e('查找重置密码Code失败，Redis', e)
         ctx.body = global.msg.failed(crb, '账户验证失败，验证码不匹配！')
@@ -384,12 +418,12 @@ async function reset(ctx) {
     const userLogin = {
         uuid: crb.uuid,
         password: HASH(crb.newpassword),
-        createtime : new Date().getTime()
+        createtime: new Date().getTime()
     }
-    try{
+    try {
         await DB.userLogin.INSERT(userLogin)
-        ctx.body = global.msg.success({tokenStatus:false}, '找回账户成功')
-    }catch (e) {
+        ctx.body = global.msg.success({tokenStatus: false}, '找回账户成功')
+    } catch (e) {
         console.e('创建新密码失败，重置密码', e)
         ctx.body = global.msg.failed(crb, '账户验证失败，验证码不匹配！')
     }
@@ -536,19 +570,19 @@ async function sendCode(ctx) {
 //  ####################################################登陆后用户信息接口##################################################
 //#region
 //  退出登录
-async function signOut(ctx){
-    try{
+async function signOut(ctx) {
+    try {
         await global.Redis.delLogin(ctx.uuid, ctx.token)
         ctx.body = global.msg.success({}, '退出登陆成功！')
-    }catch (e) {
+    } catch (e) {
         console.e('退出登陆失败 ', e)
         ctx.body = global.msg.failed({}, '退出登陆失败！')
     }
 }
 //  修改用户信息
-async function editUserinfo(ctx){
+async function editUserinfo(ctx) {
     const crb = ctx.request.body;
-    try{
+    try {
         const createtime = new Date().getTime()
         //  用户表信息
         const userInfo = {
@@ -561,7 +595,7 @@ async function editUserinfo(ctx){
             personal: crb.personal,
             address: crb.address,
             country: crb.country,
-            sex:  crb.sex ? Number(crb.sex) || 0 : undefined,
+            sex: crb.sex ? Number(crb.sex) || 0 : undefined,
             birthday: crb.birthday ? Number(crb.birthday.toString().slice(0, 8)) || 0 : undefined,
             nickname: crb.nickname,
             personal: crb.personal,
@@ -576,52 +610,52 @@ async function editUserinfo(ctx){
         await DB.userInfo.UPDATE(userInfo, where)
         await DB.userInfoOther.UPDATE(userInfoOther, where)
         ctx.body = global.msg.success({}, '修改信息成功！')
-    }catch (e) {
+    } catch (e) {
         console.e('修改信息失败！', e)
         ctx.body = global.msg.failed({e}, '修改信息失败！')
     }
 }
 //  修改密码
-async function editPassword(ctx){
+async function editPassword(ctx) {
     const crb = ctx.request.body;
-    if(!crb.oldpassword || !crb.newpassword){
+    if (!crb.oldpassword || !crb.newpassword) {
         ctx.body = global.msg.failed({}, '缺少关键信息！')
         return
-    }else if(crb.oldpassword == crb.newpassword){
+    } else if (crb.oldpassword == crb.newpassword) {
         ctx.body = global.msg.failed({}, '请保持新旧密码的差异性！')
         return
     }
-    try{
+    try {
         const mustPassword = await getPassword(ctx.uuid)
-        if(HASH(crb.oldpassword) != mustPassword){
+        if (HASH(crb.oldpassword) != mustPassword) {
             ctx.body = global.msg.failed({}, '原始密码不匹配！')
-        }else{
-            try{
+        } else {
+            try {
                 //  登陆表信息
                 const userLogin = {
                     uuid: ctx.uuid,
                     password: HASH(crb.newpassword),
-                    createtime:new Date().getTime()
+                    createtime: new Date().getTime()
                 }
                 await DB.userLogin.INSERT(userLogin)
                 await signOut(ctx)
                 ctx.body = global.msg.success({}, '修改密码成功！')
-            }catch (e){
+            } catch (e) {
                 console.e('写入用户新密码出错', e)
                 ctx.body = global.msg.failed({}, '修改密码出现意外，系统错误！')
                 return
             }
         }
-    }catch (e) {
+    } catch (e) {
         console.e('查找用户密码出错', e)
         ctx.body = global.msg.failed({}, '账户验证失败，系统错误！')
         return
     }
 }
 //  注销用户
-async function writeoff(ctx){
+async function writeoff(ctx) {
     const crb = ctx.request.body;
-    if(!crb.code){
+    if (!crb.code) {
         ctx.body = global.msg.failed({}, '缺少关键信息！')
         return
     }
@@ -641,17 +675,17 @@ async function writeoff(ctx){
         ctx.body = global.msg.failed(crb, '查找用户邮箱失败！')
         return
     }
-    try{
+    try {
         const result = await global.Redis.getWriteoffCode(crb.email)
         console.log(result)
-        if(result.code == crb.code || new Date().getTime() - result.time > global.cfg.RedisJSON.timeout){
+        if (result.code == crb.code || new Date().getTime() - result.time > global.cfg.RedisJSON.timeout) {
             const data = {
-                status : 0,
+                status: 0,
             }
             const where = {uuid: ctx.uuid}
-            try{
+            try {
                 await DB.userInfo.UPDATE(data, where)
-            }catch (e) {
+            } catch (e) {
                 console.e(e)
                 ctx.body = global.msg.failed(crb, '注销账户失败，系统错误！')
                 return
@@ -659,105 +693,122 @@ async function writeoff(ctx){
             await signOut(ctx)
             ctx.body = global.msg.success(crb, '注销账户成功！')
             global.Redis.delWriteoffCode(crb.email)
-        }else{
+        } else {
             ctx.body = global.msg.failed(crb, '注销账户的验证码不匹配！')
         }
-    }catch (e){
+    } catch (e) {
         console.e(`无法匹配注销账户的验证码，系统错误：`, e)
-        if(e.toString().indexOf('not exist') > -1){
+        if (e.toString().indexOf('not exist') > -1) {
             ctx.body = global.msg.failed(crb, '注销账户的验证码不匹配！')
-        }else{
+        } else {
             ctx.body = global.msg.failed(crb, '无法匹配注销账户的验证码，系统错误！')
         }
     }
 
 }
 //  获取用户信息
-async function getuserInfo(ctx){
+async function getuserInfo(ctx) {
 
 }
+
 //#endregion
 //  -#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#登陆后用户信息接口-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#
 
 //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^角色^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //#region
 //  创建角色
-async function createRole(ctx){
+async function createRole(ctx) {
     const crb = ctx.request.body;
-    if(!crb.roleName || !crb.roleRemarks){
+    if (!crb.roleName || !crb.roleRemarks) {
         ctx.body = global.msg.failed(crb, '缺少关键信息！')
         return
     }
     const userRole = {
         role_name: crb.roleName,
-        role_remarks:crb.roleRemarks
+        role_remarks: crb.roleRemarks
     }
     const field = '*'
-    const where = {...userRole, _type:'or'}
-    try{
+    const where = {...userRole, _type: 'or'}
+    try {
         const result = await DB.userRole.SELECT(field, where)
-        if(result.length > 0){
+        if (result.length > 0) {
             ctx.body = global.msg.failed(result, '创建角色失败，已存在相关角色信息！')
             return
         }
-    }catch (e) {
-        console.e('查重角色信息失败，数据库错误。',e)
+    } catch (e) {
+        console.e('查重角色信息失败，数据库错误。', e)
         ctx.body = global.msg.failed(crb, '创建角色失败，系统错误！')
         return
     }
-    try{
+    try {
         await DB.userRole.INSERT(userRole)
-    }catch (e) {
-        console.e('写入角色失败，数据库错误。',e)
+    } catch (e) {
+        console.e('写入角色失败，数据库错误。', e)
         ctx.body = global.msg.failed(crb, '创建角色失败，系统错误！')
         return
     }
     ctx.body = global.msg.success(crb, '创建角色成功！')
 }
 //  删除角色
-async function deleteRoleList(ctx){
+async function deleteRoleList(ctx) {
     const crb = ctx.request.body;
-    if(!crb.roleIdList){
+    if (!crb.roleIdList) {
         ctx.body = global.msg.failed(crb, '缺少关键信息！')
         return
     }
-    try{
-        if(!Array.isArray(crb.roleIdList)){
+    try {
+        if (!Array.isArray(crb.roleIdList)) {
             const result = await DB.userRole.DELETE({id: Number(crb.roleIdList) || 0})
             console.log(result)
-        }else{
+        } else {
             const result = await DB.userRole.DELETEINID(crb.roleIdList.join(','))
             console.log(result)
         }
         ctx.body = global.msg.success({}, '删除角色成功！')
-    }catch (e) {
-        console.e('删除角色失败，数据库错误。',e)
+    } catch (e) {
+        console.e('删除角色失败，数据库错误。', e)
         ctx.body = global.msg.failed(crb, '删除角色失败，系统错误！')
     }
-
 }
 //  修改角色信息
-async function editRole(ctx){
+async function editRole(ctx) {
     const crb = ctx.request.body;
-    if(!crb.roleId || !crb.roleName || !crb.roleRemarks){
+    if (!crb.roleId || !crb.roleName || !crb.roleRemarks) {
         ctx.body = global.msg.failed(crb, '缺少关键信息！')
         return
     }
     const userRole = {
         role_name: crb.roleName,
-        role_remarks:crb.roleRemarks
+        role_remarks: crb.roleRemarks
     }
-    const where = {id:crb.roleId}
-    try{
+    const where = {id: crb.roleId}
+
+    const field = '*'
+    const where2 = {...userRole, _type: 'or'}
+    try {
+        const result = await DB.userRole.SELECT(field, where2)
+        if (result.length <= 1 && result[0]?.id == crb.roleId) {
+            ctx.body = global.msg.failed(result, '修改角色信息失败，已存在相关角色信息！')
+            return
+        } else if (result.length > 1) {
+            ctx.body = global.msg.failed(result, '创建角色信息失败，已存在相关权限信息！')
+            return
+        }
+    } catch (e) {
+        console.e('查重角色信息失败，数据库错误。', e)
+        ctx.body = global.msg.failed(crb, '修改角色信息失败，系统错误！')
+        return
+    }
+    try {
         await DB.userRole.UPDATE(userRole, where)
         ctx.body = global.msg.success({}, '修改角色信息成功！')
-    }catch (e){
-        console.e('修改角色信息失败,数据库错误',e)
+    } catch (e) {
+        console.e('修改角色信息失败,数据库错误', e)
         ctx.body = global.msg.failed({}, '修改角色信息失败，系统错误！')
     }
 }
 //  获取全部角色列表
-async function getAllRoleList(ctx){
+async function getAllRoleList(ctx) {
     const crb = ctx.request.body;
     const page = Math.abs(Number(crb.page) || 0)
         , pageSize = Math.abs(Number(crb.pageSize) || 10)
@@ -765,75 +816,283 @@ async function getAllRoleList(ctx){
     const field = '*'
     const limit = [page * pageSize, (page + 1) * pageSize]
     const where = ''
-    try{
+    try {
         const result = await DB.userRole.LIMIT(field, limit, where)
         const count = await DB.userRole.COUNT('id', where)
-        ctx.body = global.msg.success({data: result,count: count, page, pageSize}, '获取全部角色列表成功！')
-    }catch (e) {
-        console.e(`获取个人角色列表失败,数据库错误`, e)
-        ctx.body = global.msg.success({}, '获取全部角色列表失败,系统错误！')
+        ctx.body = global.msg.success({data: result, count: count, page, pageSize}, '获取全部角色列表成功！')
+    } catch (e) {
+        console.e(`获取全部角色列表失败,数据库错误`, e)
+        ctx.body = global.msg.failed({}, '获取全部角色列表失败,系统错误！')
     }
 }
 //  获取个人角色列表
-async function getPersonalRoleIdList(ctx){
+async function getPersonalRoleIdList(ctx) {
     const crb = ctx.request.body;
-    if(!crb.uuid){
-        ctx.body = global.msg.success(crb, '缺少必要参数！')
+    if (!crb.uuid) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
         return
     }
     try {
         const result = await TgetPersonalRoleIdList(crb)
         ctx.body = global.msg.success(result, '获取个人角色列表成功！')
-    }catch (e) {
-        ctx.body = global.msg.success({}, '获取个人角色列表失败,系统错误！')
+    } catch (e) {
+        ctx.body = global.msg.failed({}, '获取个人角色列表失败,系统错误！')
     }
 }
 //  添加用户角色关联
-async function addRoleAndUserRelation(ctx){
+async function addRoleAndUserRelation(ctx) {
     const crb = ctx.request.body;
-    if(!crb.uuidList || !crb.roleIdList){
-        ctx.body = global.msg.success(crb, '缺少必要参数！')
+    if (!crb.uuidList || !crb.roleIdList) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
         return
     }
-    if(!Array.isArray(crb.uuidList) || !Array.isArray(crb.roleIdList)){
-        ctx.body = global.msg.success(crb, '参数类型必须为数组！')
+    if (!Array.isArray(crb.uuidList) || !Array.isArray(crb.roleIdList)) {
+        ctx.body = global.msg.failed(crb, '参数类型必须为数组！')
         return
     }
     const roleRelationList = []
-    for(let i of(crb.uuidList)){
-        for(let j of crb.roleIdList){
-            roleRelationList.push({uuid:i, role_id: j})
+    for (let i of (crb.uuidList)) {
+        for (let j of crb.roleIdList) {
+            roleRelationList.push({uuid: i, role_id: j})
         }
     }
-    try{
+    try {
         await DB.userRelationRole.INSERT(roleRelationList)
         ctx.body = global.msg.success({}, '添加用户角色关联成功！')
-    }catch (e) {
+    } catch (e) {
         console.log('添加用户角色关联失败，数据库错误', e)
-        ctx.body = global.msg.success({}, '添加用户角色关联失败，系统错误！')
+        ctx.body = global.msg.failed({}, '添加用户角色关联失败，系统错误！')
     }
 }
 //  删除用户角色关联
-async function romoveRoleAndUserRelation(ctx){
+async function romoveRoleAndUserRelation(ctx) {
     const crb = ctx.request.body;
-    if(!crb.roleRelationIdList){
-        ctx.body = global.msg.success(crb, '缺少必要参数！')
+    if (!crb.roleRelationIdList) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
         return
     }
-    if(!Array.isArray(crb.roleRelationIdList)){
-        ctx.body = global.msg.success(crb, '参数类型必须为数组！')
+    if (!Array.isArray(crb.roleRelationIdList)) {
+        ctx.body = global.msg.failed(crb, '参数类型必须为数组！')
         return
     }
-    try{
+    try {
         await DB.userRelationRole.DELETEINID(crb.roleRelationIdList.join(','))
         ctx.body = global.msg.success({}, '删除用户角色关联成功！')
-    }catch (e){
+    } catch (e) {
         console.log('添加用户角色关联失败，数据库错误', e)
-        ctx.body = global.msg.success({}, '删除用户角色关联失败，系统错误！')
+        ctx.body = global.msg.failed({}, '删除用户角色关联失败，系统错误！')
     }
 }
 //#endregion
 //  -^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^角色-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-^-
+
+//  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@权限@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+//#region
+//  创建权限
+async function createAuthority(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityName
+        || !crb.type
+        || !crb.authorityRemarks) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
+        return
+    }
+    const userAuthority = {
+        authority_name: crb.authorityName,
+        type: Number(crb.type) || 0,
+        grade: Number(crb.grade) || -1,
+        sequence: Number(crb.sequence) || 99,
+        authority_remarks: crb.authorityRemarks,
+    }
+    const field = '*'
+    const userAuthorityCheck = {
+        authority_name: crb.authorityName,
+        authority_remarks: crb.authorityRemarks,
+    }
+    try {
+        const result = await DB.userAuthority.SELECT(field, userAuthorityCheck)
+        if (result.length > 0) {
+            ctx.body = global.msg.failed(result, '创建权限失败，已存在相关权限信息！')
+            return
+        }
+    } catch (e) {
+        console.e('查重权限信息失败，数据库错误。', e)
+        ctx.body = global.msg.failed(crb, '创建权限失败，系统错误！')
+        return
+    }
+    try {
+        await DB.userAuthority.INSERT(userAuthority)
+        ctx.body = global.msg.success({}, '创建权限成功！')
+    } catch (e) {
+        console.log('创建权限失败，数据库错误', e)
+        ctx.body = global.msg.failed({}, '创建权限失败，系统错误！')
+    }
+}
+
+//  删除权限
+async function romveAuthority(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityIdList) {
+        ctx.body = global.msg.success(crb, '缺少必要参数！')
+        return
+    }
+    if (!Array.isArray(crb.authorityIdList)) {
+        ctx.body = global.msg.success(crb, '参数类型错误！')
+        return
+    }
+    try {
+        const result = await DB.userAuthority.DELETEINID(crb.authorityIdList.join(','))
+        ctx.body = global.msg.success({}, '删除权限成功！')
+    } catch (e) {
+        console.e('删除权限失败，数据库错误。', e)
+        ctx.body = global.msg.failed(crb, '删除权限失败，系统错误！')
+    }
+}
+
+//  修改权限信息
+async function editAuthority(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityId || !crb.authorityName || !crb.type || !crb.authorityRemarks) {
+        ctx.body = global.msg.failed(crb, '缺少关键信息！')
+        return
+    }
+    const userAuthority = {
+        authority_name: crb.authorityName,
+        type: Number(crb.type) || 0,
+        grade: Number(crb.grade) || -1,
+        sequence: Number(crb.sequence) || 99,
+        authority_remarks: crb.authorityRemarks,
+    }
+    const where = {id: crb.authorityId}
+    const userAuthorityCheck = {
+        authority_name: crb.authorityName,
+        authority_remarks: crb.authorityRemarks,
+    }
+    try {
+        const result = await DB.userAuthority.SELECT(field, userAuthorityCheck)
+        if (result.length <= 0 && result[0]?.id == crb.authorityId) {
+            ctx.body = global.msg.failed(result, '创建权限失败，已存在相关权限信息！')
+            return
+        } else if (result.length > 1) {
+            ctx.body = global.msg.failed(result, '创建权限失败，已存在相关权限信息！')
+            return
+        }
+    } catch (e) {
+        console.e('查重权限信息失败，数据库错误。', e)
+        ctx.body = global.msg.failed(crb, '创建权限失败，系统错误！')
+        return
+    }
+    try {
+        await DB.userAuthority.UPDATE(userAuthority, where)
+        ctx.body = global.msg.success({}, '修改权限信息成功！')
+    } catch (e) {
+        console.e('修改权限信息失败,数据库错误', e)
+        ctx.body = global.msg.failed({}, '修改权限信息失败，系统错误！')
+    }
+
+}
+
+//  获取所有权限
+async function getAllAuthority(ctx) {
+    const crb = ctx.request.body;
+    ctx.body = global.msg.success(crb, '缺少必要参数！')
+    const page = Math.abs(Number(crb.page) || 0)
+        , pageSize = Math.abs(Number(crb.pageSize) || 10)
+
+    const field = '*'
+    const limit = [page * pageSize, (page + 1) * pageSize]
+    const where = ''
+    try {
+        const result = await DB.userAuthority.LIMIT(field, limit, where)
+        const count = await DB.userAuthority.COUNT('id', where)
+        ctx.body = global.msg.success({data: result, count: count, page, pageSize}, '获取所有权限列表成功！')
+    } catch (e) {
+        console.e(`获取所有权限列表失败,数据库错误`, e)
+        ctx.body = global.msg.failed({}, '获取所有权限列表失败,系统错误！')
+    }
+}
+
+//  添加角色权限关系
+async function addAuthorityAndRoleRelation(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityIdList || !crb.roleIdList) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
+        return
+    }
+    if (!Array.isArray(crb.authorityIdList) || !Array.isArray(crb.roleIdList)) {
+        ctx.body = global.msg.failed(crb, '参数类型必须为数组！')
+        return
+    }
+    const authorityRelationList = []
+    for (let i of (crb.roleIdList)) {
+        for (let j of crb.authorityIdList) {
+            authorityRelationList.push({role_id: i, authority_id: j})
+        }
+    }
+    try {
+        await DB.userRelationAuthority.INSERT(authorityRelationList)
+        ctx.body = global.msg.success({}, '添加角色权限关联成功！')
+    } catch (e) {
+        console.log('添加角色权限关联失败，数据库错误', e)
+        ctx.body = global.msg.failed({}, '添加角色权限关联失败，系统错误！')
+    }
+
+}
+
+//  删除角色权限关联
+async function removeAuthorityAndRoleRelation(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityRelationIdList) {
+        ctx.body = global.msg.failed(crb, '缺少必要参数！')
+        return
+    }
+    if (!Array.isArray(crb.authorityRelationIdList)) {
+        ctx.body = global.msg.failed(crb, '参数类型必须为数组！')
+        return
+    }
+    try {
+        await DB.userRelationRole.DELETEINID(crb.authorityRelationIdList.join(','))
+        ctx.body = global.msg.success({}, '删除角色权限关联成功！')
+    } catch (e) {
+        console.log('添加角色权限关联失败，数据库错误', e)
+        ctx.body = global.msg.failed({}, '删除角色权限关联失败，系统错误！')
+    }
+}
+
+//  清空当前权限的所有使用角色
+async function clearAuthorityRole(ctx) {
+    const crb = ctx.request.body;
+    if (!crb.authorityId) {
+        ctx.body = global.msg.success(crb, '缺少必要参数！')
+    }
+    const where = {authority_id: crb.authorityId}
+    try {
+        await DB.userRelationAuthority.DELETE(where)
+        ctx.body = global.msg.success({}, '清空权限所有使用角色成功！')
+    } catch (e) {
+        console.log('清空权限所有使用角色失败，数据库错误', e)
+        ctx.body = global.msg.failed({}, '清空权限所有使用角色失败，系统错误！')
+    }
+
+}
+
+//  获取角色权限
+async function getRoleAuthority(ctx) {
+    const crb = ctx.request.body;
+    try {
+        const result = await TgetRoleAuthority(crb)
+        console.log(result)
+        ctx.body = global.msg.success(result, '获取角色权限成功！')
+    } catch (err) {
+        const {message, e} = err;
+        console.e('查找角色权限错误，数据库错误!', e)
+        ctx.body = global.msg.failed(crb, '查找角色权限错误,系统错误！')
+    }
+
+}
+
+//#endregion
+//  -@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@权限@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@-@
 
 module.exports = {
     //  登陆前----------------------
@@ -857,4 +1116,13 @@ module.exports = {
     getPersonalRoleIdList,
     addRoleAndUserRelation,
     romoveRoleAndUserRelation,
+    //  权限
+    createAuthority,
+    romveAuthority,
+    editAuthority,
+    getAllAuthority,
+    addAuthorityAndRoleRelation,
+    removeAuthorityAndRoleRelation,
+    clearAuthorityRole,
+    getRoleAuthority,
 }

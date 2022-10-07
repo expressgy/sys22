@@ -79,7 +79,11 @@ const table = {
     userRelationAuthority:'user_relation_authority'
 }
 
-const DB = {}
+const DB = {
+    SQL:{
+        exec, sql
+    }
+}
 for(let i in table){
     DB[i] = (() => {
         return {

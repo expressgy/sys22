@@ -13,7 +13,7 @@ router.use(
     // //  角色
     require('./role'),
     // //  权限
-    // require('./authority')
+    require('./authority')
 )
 
 //  这里必须要使用router.routes()，多层嵌套

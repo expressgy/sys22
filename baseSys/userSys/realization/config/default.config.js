@@ -39,7 +39,7 @@ module.exports = {
     },
     //  redis
     RedisJSON:{
-        host:'222.90.12.64',
+        host:'222.90.12.115',
         port:6379,
         timeout:5 * 60 * 1000,
         // timeout:5 * 1000,
