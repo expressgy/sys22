@@ -150,6 +150,8 @@ function TgetRoleAuthority(crb) {
         try {
             if(!crb.page && !crb.pageSize){
                 const SQL = await DB.SQL.sql.query(`SELECT * from user_authority where id in (select authority_id from user_relation_authority where role_id = ${crb.roleId})`)
+                console.log(SQL)
+                console.log(await DB.SQL.exec('select authority_id from user_relation_authority where role_id = 6'))
                 const result2 = await DB.SQL.exec(SQL)
                 res(result2)
             }else{
@@ -856,11 +858,35 @@ async function addRoleAndUserRelation(ctx) {
             roleRelationList.push({uuid: i, role_id: j})
         }
     }
+    try{
+        //  查重
+        const exist = DB.SQL.sql.query(`SELECT * from user_relation_role where (uuid, role_id) in (${(DB.SQL.sql.table('b').data(roleRelationList).insert()).split('VALUES ')[1]})`)
+        const check = await DB.SQL.exec(exist)
+        if(check.length !=0){
+            let deleteList = []
+            for(let i in roleRelationList){
+                for(let j of check){
+                    if(roleRelationList[i].uuid == j.uuid && roleRelationList[i].role_id == j.role_id){
+                        deleteList.push(i)
+                    }
+                }
+            }
+            deleteList = deleteList.reverse()
+            for(let i of deleteList){
+                roleRelationList.splice(i, 1)
+            }
+        }
+    }catch (e) {
+        console.e('添加用户角色关联失败,查重失败，数据库错误', e)
+        ctx.body = global.msg.failed({}, '添加用户角色关联失败，系统错误！')
+    }
     try {
-        await DB.userRelationRole.INSERT(roleRelationList)
+        if(roleRelationList.length != 0){
+            await DB.userRelationRole.INSERT(roleRelationList)
+        }
         ctx.body = global.msg.success({}, '添加用户角色关联成功！')
     } catch (e) {
-        console.log('添加用户角色关联失败，数据库错误', e)
+        console.e('添加用户角色关联失败，数据库错误', e)
         ctx.body = global.msg.failed({}, '添加用户角色关联失败，系统错误！')
     }
 }
@@ -1029,11 +1055,36 @@ async function addAuthorityAndRoleRelation(ctx) {
             authorityRelationList.push({role_id: i, authority_id: j})
         }
     }
+    try{
+        //  查重
+        const SQL = DB.SQL.sql.table('user_relation_authority').data(authorityRelationList).insert().split('VALUES ')[1]
+        const checkSQL = DB.SQL.sql.query(`select * from user_relation_authority where (role_id, authority_id) in (${SQL})`)
+        const check = await DB.SQL.exec(checkSQL);
+        if(check.length !=0){
+            let deleteList = []
+            for(let i in authorityRelationList){
+                for(let j of check){
+                    if(authorityRelationList[i].role_id == j.role_id && authorityRelationList[i].authority_id == j.authority_id){
+                        deleteList.push(i)
+                    }
+                }
+            }
+            deleteList = deleteList.reverse()
+            for(let i of deleteList){
+                authorityRelationList.splice(i, 1)
+            }
+        }
+    }catch (e) {
+        ctx.body = global.msg.failed({}, '添加角色权限关联失败，系统错误！')
+        console.e('添加角色权限关联失败,查重错误，数据库错误', e)
+    }
     try {
-        await DB.userRelationAuthority.INSERT(authorityRelationList)
+        if(authorityRelationList.length != 0){
+            await DB.userRelationAuthority.INSERT(authorityRelationList)
+        }
         ctx.body = global.msg.success({}, '添加角色权限关联成功！')
     } catch (e) {
-        console.log('添加角色权限关联失败，数据库错误', e)
+        console.e('添加角色权限关联失败，数据库错误', e)
         ctx.body = global.msg.failed({}, '添加角色权限关联失败，系统错误！')
     }
 
