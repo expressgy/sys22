@@ -170,6 +170,36 @@ function TgetRoleAuthority(crb) {
     })
 }
 
+//  删除权限
+function TdeleteAuthority(authList){
+    return new Promise(async (res, rej) => {
+        try{
+            const SQL = DB.SQL.sql.query(`DELETE FROM user_relation_authority WHERE authority_id in (${authList})`)
+            const result = await DB.SQL.exec(SQL);
+            res(result)
+        }catch (e) {
+            rej('删除权限关系表记录失败，数据库错误。')
+            console.e('删除权限关系表记录失败,数据库错误。', e)
+        }
+    })
+}
+
+//  删除角色
+function TdeleteRole(roleList){
+    return new Promise(async (res, rej) => {
+        try{
+            const SQL = DB.SQL.sql.query(`DELETE FROM user_relation_authority WHERE role_id in (${roleList})`)
+            const result = await DB.SQL.exec(SQL);
+            const roleSQL = DB.SQL.sql.query(`DELETE FROM user_relation_role WHERE role_id in (${roleList})`)
+            const resultRole = await DB.SQL.exec(roleSQL);
+            res()
+        }catch (e) {
+            console.e('删除角色关系表记录失败,数据库错误。', e)
+            rej('删除角色关系表记录失败',e)
+        }
+    })
+}
+
 //#endregion
 //  ========================================================================================
 
@@ -761,11 +791,10 @@ async function deleteRoleList(ctx) {
     try {
         if (!Array.isArray(crb.roleIdList)) {
             const result = await DB.userRole.DELETE({id: Number(crb.roleIdList) || 0})
-            console.log(result)
         } else {
             const result = await DB.userRole.DELETEINID(crb.roleIdList.join(','))
-            console.log(result)
         }
+        await TdeleteRole(crb.roleIdList)
         ctx.body = global.msg.success({}, '删除角色成功！')
     } catch (e) {
         console.e('删除角色失败，数据库错误。', e)
@@ -968,6 +997,7 @@ async function romveAuthority(ctx) {
     }
     try {
         const result = await DB.userAuthority.DELETEINID(crb.authorityIdList.join(','))
+        await TdeleteAuthority(crb.authorityIdList)
         ctx.body = global.msg.success({}, '删除权限成功！')
     } catch (e) {
         console.e('删除权限失败，数据库错误。', e)
@@ -1105,7 +1135,7 @@ async function removeAuthorityAndRoleRelation(ctx) {
         await DB.userRelationRole.DELETEINID(crb.authorityRelationIdList.join(','))
         ctx.body = global.msg.success({}, '删除角色权限关联成功！')
     } catch (e) {
-        console.log('添加角色权限关联失败，数据库错误', e)
+        console.e('添加角色权限关联失败，数据库错误', e)
         ctx.body = global.msg.failed({}, '删除角色权限关联失败，系统错误！')
     }
 }
