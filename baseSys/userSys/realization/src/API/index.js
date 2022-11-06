@@ -462,7 +462,8 @@ async function reset(ctx) {
 }
 //  用户名查重
 async function checkOnly(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
+    console.log(crb)
     crb.username = crb.username?.trim()
     crb.password = crb.password?.trim()
     crb.code = crb.code?.trim()
@@ -476,7 +477,7 @@ async function checkOnly(ctx) {
 }
 //  发送验证码
 async function sendCode(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
     crb.username = crb.username?.trim()
     crb.password = crb.password?.trim()
     crb.code = crb.code?.trim()
@@ -840,7 +841,7 @@ async function editRole(ctx) {
 }
 //  获取全部角色列表
 async function getAllRoleList(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
     const page = Math.abs(Number(crb.page) || 0)
         , pageSize = Math.abs(Number(crb.pageSize) || 10)
 
@@ -858,7 +859,7 @@ async function getAllRoleList(ctx) {
 }
 //  获取个人角色列表
 async function getPersonalRoleIdList(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
     if (!crb.uuid) {
         ctx.body = global.msg.failed(crb, '缺少必要参数！')
         return
@@ -1050,7 +1051,7 @@ async function editAuthority(ctx) {
 
 //  获取所有权限
 async function getAllAuthority(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
     ctx.body = global.msg.success(crb, '缺少必要参数！')
     const page = Math.abs(Number(crb.page) || 0)
         , pageSize = Math.abs(Number(crb.pageSize) || 10)
@@ -1159,7 +1160,7 @@ async function clearAuthorityRole(ctx) {
 
 //  获取角色权限
 async function getRoleAuthority(ctx) {
-    const crb = ctx.request.body;
+    const crb = ctx.request.query;
     try {
         const result = await TgetRoleAuthority(crb)
         console.log(result)

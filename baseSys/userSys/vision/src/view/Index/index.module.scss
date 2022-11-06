@@ -1,0 +1,28 @@
+.Index{
+    position: relative;
+    height: 100%;
+    width: 100%;
+    background-image: url("./background.jpg");
+    background-position: center 100%;
+    background-repeat: no-repeat;
+    background-size:cover;
+    -moz-user-select:none;
+    -webkit-user-select:none;
+    user-select:none;
+    cursor: pointer;
+    & > div{
+        position: relative;
+        height: 100%;
+        width: 100%;
+        backdrop-filter: blur(15px);
+        background: #33333333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        & >div.title{
+            font-size: 2.5rem;
+            color:#fefefe;
+            letter-spacing: 20px;
+        }
+    }
+}

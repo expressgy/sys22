@@ -1,0 +1,162 @@
+.BPEMR_button_box{
+    position: relative;
+    width: fit-content;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    padding: 5px 0;
+}
+.BPEMR_button {
+    position: relative;
+    width: fit-content;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    line-height: 2em;
+    padding: 0 1em;
+    margin: 0.5em 0;
+    user-select: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all ease-in-out 200ms;
+    color: #fefefe;
+}
+.BPEMR_button.loading{
+    $jump : jump;
+    animation: jump .4s ease-in-out infinite alternate;
+    @keyframes jump {
+        0%{top:0px}
+        33%{top:-2px}
+        66%{top:-8px}
+        100%{top:-10px}
+    }
+    &{
+        box-shadow: 0 5px 20px -10px #33333399;
+    }
+}
+.BPEMR_button.disable{
+    cursor: no-drop;
+    &:hover{
+        box-shadow: none !important;
+    }
+}
+
+.BPEMR_button.defaultsize {
+    font-size: 1rem;
+
+    &:hover {
+        box-shadow: 0px 0 5px 0px #33333399;
+    }
+}
+
+.BPEMR_button.oversize {
+    font-size: 1.2rem;
+
+    &:hover {
+        box-shadow: 0px 0 7px 0px #33333399;
+    }
+}
+
+.BPEMR_button.undersize {
+    font-size: 0.8rem;
+
+    &:hover {
+        box-shadow: 0px 0 3px 1px #99999999;
+    }
+}
+
+
+.BPEMR_button.defaultColor {
+    color: #222831;
+    background: #fefefe;
+    border: 1px solid #bcbcbc;
+
+    &:active {
+        background: #fff !important;
+    }
+}
+
+.BPEMR_button.eColor {
+    background: #E84545;
+    background: #ff4d4f;
+    border: 1px solid #ff4d4f;
+
+    &:active {
+        background: #ff4d4fcc !important;
+        border: 1px solid #ff4d4fcc !important;
+    }
+}
+
+.BPEMR_button.e2Color {
+    background: #F6416C;
+    border: 1px solid #F6416C;
+    &:active {
+        background: #F6416Ccc !important;
+        border: 1px solid #F6416Ccc !important;
+    }
+}
+
+.BPEMR_button.e3Color {
+    background: #FF165D;
+    border: 1px solid #FF165D;
+    &:active {
+        background: #E84545ee !important;
+        border: 1px solid #E84545cc !important;
+    }
+}
+
+.BPEMR_button.sColor {
+    background: #17B978;
+    border: 1px solid #17B978;
+    &:active {
+        background: #17B978cc !important;
+        border: 1px solid #17B978cc !important;
+    }
+}
+
+.BPEMR_button.s2Color {
+    background: #3EC1D3;
+    border: 1px solid #3EC1D3;
+    &:active {
+        background: #3EC1D3cc !important;
+        border: 1px solid #3EC1D3cc !important;
+    }
+}
+
+.BPEMR_button.s3Color {
+    background: #00ADB5;
+    border: 1px solid #00ADB5;
+    &:active {
+        background: #00ADB5cc !important;
+        border: 1px solid #00ADB5cc !important;
+    }
+}
+
+.BPEMR_button.wColor {
+    background: #FF9A00;
+    border: 1px solid #FF9A00;
+    &:active {
+        background: #FF9A00cc !important;
+        border: 1px solid #FF9A00cc !important;
+    }
+}
+
+.BPEMR_button.w2Color {
+    background: #FF6F3C;
+    border: 1px solid #FF6F3C;
+    &:active {
+        background: #FF6F3Ccc !important;
+        border: 1px solid #FF6F3Ccc !important;
+    }
+}
+
+.BPEMR_button.w3Color {
+    background: #FFC93C;
+    border: 1px solid #FFC93C;
+    &:active {
+        background: #FFC93Ccc !important;
+        border: 1px solid #FFC93Ccc !important;
+    }
+}
+
+
+
+

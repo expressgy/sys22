@@ -13,6 +13,9 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
+
+  --animate-duration: 900ms;
+  --animate-delay: 0.9s;
 }
 
 a {
@@ -25,16 +28,18 @@ a:hover {
 }
 
 html,body{
-  position: relative;
+  height: 100% !important;
+  width: 100% !important;
+  overflow: hidden;
+}
+#root,.App{
   height: 100%;
   width: 100%;
-  margin: 0;
-  padding: 0;
-  user-select: none;
+  overflow: hidden;
 }
 
 body {
-  /*place-items: center;*/
+  margin: 0;
 }
 
 h1 {
@@ -73,3 +78,34 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+#modalRoot{
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  top:0;
+  left: 0;
+  align-items: center;
+  justify-content: center;
+  display: none;
+  backdrop-filter: blur(50px);
+  animation: modalRootShow ease-in-out 500ms forwards;
+}
+@keyframes modalRootShow {
+  from{
+    background: #33333300;
+  }
+  to{
+    background: #66666633;
+  }
+}
+@keyframes modalRootHide {
+  from{
+    background: #33333333;
+  }
+  to{
+    background: #66666600;
+  }
+}
+
+fieldset, img,input,button { border:none; padding:0;margin:0;outline-style:none; }

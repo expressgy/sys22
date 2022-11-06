@@ -1,0 +1,433 @@
+.login {
+    position: relative;
+    height: 100%;
+    width: 100%;
+
+    background-image: linear-gradient(to bottom, transparent 75%, #ffffff 100%), radial-gradient(at 0% 0%, hsla(154, 4%, 50%, 0.25) 0, transparent 50%), radial-gradient(at 0% 50%, hsla(120, 5%, 50%, 0.23) 0, transparent 50%), radial-gradient(at 40% 40%, hsla(120, 4%, 50%, 0.21) 0, transparent 50%), radial-gradient(at 80% 0%, #ffffff 0, transparent 50%), radial-gradient(at 80% 50%, #ffffff 0, transparent 50%), radial-gradient(at 80% 50%, #ffffff 0, transparent 50%), linear-gradient(to bottom, transparent 75%, #ffffff 100%);
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    user-select: none;
+
+    & > div {
+        position: relative;
+        width: 18rem;
+        height: 25rem;
+        backdrop-filter: blur(20px);
+
+        display: flex;
+        flex-direction: column;
+
+        overflow: hidden;
+
+        background: #00ADB5;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-sizing: border-box;
+
+        & > div.title {
+            position: relative;
+            font-size: 2rem;
+            line-height: 4rem;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        & > div.icon {
+            position: relative;
+            text-align: center;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+
+            & > img {
+                width: 2rem;
+            }
+        }
+
+        & > div:nth-child(3) {
+            position: relative;
+            flex-shrink: 0;
+            height: 1.5rem;
+
+            & > div {
+                position: relative;
+                width: 7rem;
+                border-radius: 2rem;
+                border: 1px solid #fefefe;
+                display: flex;
+                font-size: 0.8rem;
+                line-height: 1.3rem;
+                margin: 0 auto;
+
+                & > div {
+                    position: relative;
+                    flex: 1;
+                    text-align: center;
+                    cursor: pointer;
+                    color: #fefefe;
+                }
+
+                & > div:nth-child(1) {
+                    border-radius: 2rem;
+                    position: absolute;
+                    width: 50%;
+                    left: 0;
+                    background: #535bf2;
+                    height: 100%;
+                    transition: left ease-in-out 300ms;
+                }
+
+                & > div:nth-child(1).left {
+                    left: 50%;
+                }
+            }
+        }
+
+        & > div.loginBox {
+            position: relative;
+            flex: 1;
+            height: 100%;
+            width: 100%;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden;
+            display: flex;
+            //flex-wrap: wrap;
+
+            & > div.page1 {
+                position: relative;
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-shrink: 0;
+                flex-direction: column;
+
+                & > div {
+                    position: relative;
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                & > div:nth-child(1) {
+                    flex: 1;
+
+                    & > input {
+                        width: 100%;
+                        border-radius: 5px;
+                        font-size: 1rem;
+                        line-height: 1.5rem;
+                        padding: 0.5rem;
+                        box-sizing: border-box;
+                        text-align: center;
+                    }
+                }
+
+                & > div:nth-child(2) {
+                    height: 0;
+                    overflow: hidden;
+
+                    & > div {
+                        position: relative;
+                        background: #535bf2;
+                        height: 3.5rem;
+                        width: 3.5rem;
+                        margin: 0 auto;
+                        cursor: pointer;
+                        border-radius: 1.8rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        transition: box-shadow ease-in-out 300ms;
+
+                        &:hover {
+                            box-shadow: 0px 0px 10px -1px #33333399;
+                        }
+
+                        & > img {
+                            width: 2rem;
+                            padding: 0.8rem;
+                        }
+                    }
+                }
+            }
+
+            & > div.page2 {
+                position: relative;
+                height: 100%;
+                width: 100%;
+                display: flex;
+                flex-shrink: 0;
+                flex-direction: column;
+                margin-left: 2rem;
+
+                & > div {
+                    position: relative;
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                & > div.input {
+                    position: relative;
+                    display: block;
+
+                    & > div {
+                        position: absolute;
+                        left: 0;
+                        right: 0;
+                        height: 100%;
+                        width: 100%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+
+                        & input {
+                            width: 100%;
+                            border-radius: 5px;
+                            font-size: 1rem;
+                            line-height: 1.5rem;
+                            padding: 0.5rem;
+                            box-sizing: border-box;
+                            text-align: center;
+                        }
+                    }
+
+                    & > div:nth-child(1) {
+                    }
+
+                    & > div:nth-child(2) {
+                        position: relative;
+                        width: 100%;
+
+                        & > div {
+                            display: flex;
+                            width: 100%;
+                            overflow: hidden;
+                            & > input {
+                                display: block;
+                                flex: 1;
+                            }
+
+                            & > div:nth-child(2) {
+                                position: relative;
+                                flex-shrink: 0;
+                                width: 6rem;
+                                //margin-left: 0.5rem;
+                                font-size: 0.8px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                & > div{
+                                    padding: 0;
+                                    margin: 0;
+                                }
+                            }
+                        }
+                    }
+
+                    //  登陆方式切换动画
+                    $tdShow: tdShow;
+                    $tdHide: tdHide;
+                    @keyframes tdHide {
+                        0% {
+                            transform: rotateX(0deg);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: rotateX(90deg);
+                            opacity: 0;
+                            display: none;
+                            overflow: hidden;
+                        }
+                    }
+                    @keyframes tdShow {
+                        0% {
+                            transform: rotateX(90deg);
+                            opacity: 0;
+                            display: none;
+                            overflow: hidden;
+                        }
+                        100% {
+                            transform: rotateX(0deg);
+                            opacity: 1;
+                        }
+                    }
+
+                    .temTdHide {
+                        animation: tdHide ease-in-out 500ms forwards;
+                    }
+
+                    .temTdShow {
+                        animation: tdShow ease-in-out 500ms forwards;
+                    }
+
+                    $tdShow2: tdShow2;
+                    $tdHide2: tdHide2;
+                    @keyframes tdHide2 {
+                        0% {
+                            transform: rotateX(0deg);
+                            opacity: 1;
+                        }
+                        100% {
+                            transform: rotateX(90deg);
+                            opacity: 0;
+                            display: none;
+                            overflow: hidden;
+                        }
+                    }
+                    @keyframes tdShow2 {
+                        0% {
+                            transform: rotateX(-90deg);
+                            opacity: 0;
+                            display: none;
+                            overflow: hidden;
+                        }
+                        100% {
+                            transform: rotateX(0deg);
+                            opacity: 1;
+                        }
+                    }
+
+                    .temTdHide2 {
+                        animation: tdHide2 ease-in-out 500ms forwards;
+                    }
+
+                    .temTdShow2 {
+                        animation: tdShow2 ease-in-out 500ms forwards;
+                    }
+                }
+
+                & > div.button {
+                    position: relative;
+                    overflow: hidden;
+                    display: flex;
+
+                    & > div {
+                        position: relative;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        height: 2.5rem;
+                        background: #535bf2;
+                        border-radius: 5px;
+                        color: #fefefe;
+                        cursor: pointer;
+                    }
+
+                    & > div:nth-child(1) {
+                        width: 4.5rem;
+                        transition: width ease-in-out 300ms;
+
+                        &:hover {
+                            width: 8rem;
+                        }
+                    }
+
+                    & > div:nth-child(2) {
+                        flex: 1;
+                        margin-left: 1rem;
+                        text-align: center;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+$nextShow: nextShow;
+$nextHide: nextHide;
+@keyframes nextShow {
+    0% {
+        height: 0;
+    }
+    100% {
+        height: 50%;
+    }
+}
+
+@keyframes nextHide {
+    0% {
+        height: 50%;
+    }
+    100% {
+        height: 0;
+    }
+}
+
+.temNextShow {
+    animation: nextShow ease-in-out 300ms forwards;
+}
+
+.temNextHide {
+    animation: nextHide ease-in-out 300ms forwards;
+}
+
+$slideOutLeft: slideOutLeft;
+$slideOutRight: slideOutRight;
+$slideInLeft: slideInLeft;
+$slideInRight: slideInRight;
+
+@keyframes slideOutLeft {
+    from {
+        left: 0;
+    }
+    to {
+        left: calc(-100% - 2rem);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        left: 0;
+    }
+    to {
+        left: calc(100% - 2rem);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        left: -100%
+    }
+    to {
+        left: 0;
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        left: 100%
+    }
+    to {
+        left: 0;
+    }
+}
+
+.temSlideOutLeft {
+    animation: slideOutLeft ease-in-out 500ms forwards;
+}
+
+.temSlideOutRight {
+    animation: slideOutRight ease-in-out 500ms forwards;
+}
+
+.temSlideInLeft {
+    animation: slideInLeft ease-in-out 500ms forwards;
+}
+
+.temSlideInRight {
+    animation: slideInRight ease-in-out 500ms forwards;
+}
